@@ -27,7 +27,7 @@ export class TranslationService {
    * @returns {Promise<string>}
    */
   free(text) {
-    this.api.fetch(text, )
+    return this.api.fetch(text).then(result => result.translation);
   }
 
   /**
@@ -41,7 +41,11 @@ export class TranslationService {
    * @returns {Promise<string[]>}
    */
   batch(texts) {
-    throw new Error('Implement the batch function');
+    if (texts.length === 0) {
+      return Promise.reject(new BatchIsEmpty())
+    }
+
+    return Promise.all(texts.map((value) => this.free(value)));
   }
 
   /**
@@ -54,7 +58,14 @@ export class TranslationService {
    * @returns {Promise<void>}
    */
   request(text) {
-    throw new Error('Implement the request function');
+    const promising = () => new Promise((resolve, reject) => {
+      this.api.request(text, (result) => {
+        result ? reject(result) : resolve()
+      })
+    })
+    return promising()
+      .catch(promising)
+      .catch(promising)
   }
 
   /**
@@ -68,9 +79,19 @@ export class TranslationService {
    * @returns {Promise<string>}
    */
   premium(text, minimumQuality) {
-    throw new Error('Implement the premium function');
+    return this.api.fetch(text)
+      .catch(() => {
+        return this.request(text).then(() => this.api.fetch(text))
+      })
+      .then((result) => {
+        if (result.quality < minimumQuality) {
+          throw new QualityThresholdNotMet()
+        }
+        return result.translation
+      })
   }
 }
+
 
 /**
  * This error is used to indicate a translation was found, but its quality does
