@@ -4,5 +4,13 @@
 //
 
 export function countNucleotides(strand) {
-  throw new Error('Remove this statement and implement this function');
+  let count = { 'A': 0, 'C': 0, 'G': 0, 'T': 0 };
+  for (const i of strand) {
+    if (i in count) {
+      count[i] += 1;
+    } else {
+      throw new Error('Invalid nucleotide in strand');
+    }
+  }
+  return `${count['A']} ${count['C']} ${count['G']} ${count['T']}`;
 }
